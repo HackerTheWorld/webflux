@@ -4,14 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.alibaba.fastjson.JSONObject;
-// import com.web.flux.dao.ClientAuthonDao;
-// import com.web.flux.dao.ClientDao;
+import com.web.flux.dao.ClientAuthonDao;
+import com.web.flux.dao.ClientDao;
 import com.web.flux.entity.ClientAuthoritiesEntity;
 import com.web.flux.entity.ClientServerEntity;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -24,10 +26,10 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/asyn")
 public class AsynController {
 
-    // @Autowired
-    // private ClientDao clientDao;
-    // @Autowired
-    // private ClientAuthonDao clientAuthonDao;
+    @Autowired
+    private ClientDao clientDao;
+    @Autowired
+    private ClientAuthonDao clientAuthonDao;
 
     @GetMapping("/test")
     @ResponseBody
@@ -58,11 +60,19 @@ public class AsynController {
         return monoJson;
     }
 
+    @PostMapping(value = "/findServers", produces = "text/event-stream")
+    @ResponseBody
+    public Flux<ClientServerEntity> findServers(@RequestParam(value = "clientId")String clientId){
+        Flux<ClientServerEntity> rFlux = clientDao.findAll();
+        return rFlux;
+    }
+
     @GetMapping(value = "/findAll", produces = "text/event-stream")
     @ResponseBody
+    @TransactionalEventListener
     public Flux<ClientServerEntity> findAll() {
-        List<ClientServerEntity> list = new ArrayList();
-        List<ClientAuthoritiesEntity> list2 = new ArrayList();
+        List<ClientServerEntity> list = new ArrayList<ClientServerEntity>();
+        List<ClientAuthoritiesEntity> list2 = new ArrayList<ClientAuthoritiesEntity>();
         ClientServerEntity clientServerEntity = new ClientServerEntity();
         clientServerEntity.setClientId("1");
         clientServerEntity.setClientServerId(1);
@@ -106,9 +116,9 @@ public class AsynController {
                 for (ClientAuthoritiesEntity c : map) {
                     rolesList.add(c.getAuthorities());
                 }
-                
+
                 cFlux.subscribe(e -> {
-                    if(e.getClientServerId().equals(mapper.key().intValue())){
+                    if (e.getClientServerId().equals(mapper.key().intValue())) {
                         e.setRoles(rolesList);
                     }
                 });
@@ -125,7 +135,6 @@ public class AsynController {
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return Mono.just(jsonObject);

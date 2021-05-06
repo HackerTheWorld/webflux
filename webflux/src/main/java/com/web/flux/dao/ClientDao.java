@@ -1,10 +1,12 @@
-// package com.web.flux.dao;
+package com.web.flux.dao;
 
-// import com.web.flux.entity.ClientServerEntity;
+import com.web.flux.entity.ClientServerEntity;
 
-// import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 
-// public interface ClientDao extends ReactiveCrudRepository<ClientServerEntity, Long> {
+import reactor.core.publisher.Flux;
 
+public interface ClientDao extends ReactiveSortingRepository<ClientServerEntity, Long> {
 
-// }
+    Flux<ClientServerEntity> findAllByClientId(String clientId);
+}

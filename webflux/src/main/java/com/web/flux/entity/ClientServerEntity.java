@@ -2,7 +2,13 @@ package com.web.flux.entity;
 
 import java.util.List;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table(value = "client_server")
 public class ClientServerEntity {
+    @Id
     private Integer clientServerId;
 
     private String clientId;
@@ -25,8 +31,7 @@ public class ClientServerEntity {
 
     private Integer refreshTokenValidity;
 
-    private List<ClientAuthoritiesEntity> authorities;
-
+    @Transient
     private List<String> roles;
 
     public List<String> getRoles() {
@@ -35,14 +40,6 @@ public class ClientServerEntity {
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
-    }
-
-    public List<ClientAuthoritiesEntity> getAuthorities() {
-        return authorities;
-    }
-
-    public void setAuthorities(List<ClientAuthoritiesEntity> authorities) {
-        this.authorities = authorities;
     }
 
     public Integer getClientServerId() {

@@ -1,9 +1,9 @@
-// package com.web.flux.dao;
+package com.web.flux.dao;
 
-// import com.web.flux.entity.ClientAuthoritiesEntity;
+import com.web.flux.entity.ClientAuthoritiesEntity;
 
-// import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
-// public interface ClientAuthonDao extends ReactiveCrudRepository<ClientAuthoritiesEntity, Long>  {
+public interface ClientAuthonDao extends ReactiveCrudRepository<ClientAuthoritiesEntity, Long>  {
     
-// }
+}

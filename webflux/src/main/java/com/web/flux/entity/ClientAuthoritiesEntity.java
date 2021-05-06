@@ -1,6 +1,11 @@
 package com.web.flux.entity;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table(value = "client_authorities")
 public class ClientAuthoritiesEntity {
+    @Id
     private Long clientAuthoritiesId;
 
     private String authorities;
