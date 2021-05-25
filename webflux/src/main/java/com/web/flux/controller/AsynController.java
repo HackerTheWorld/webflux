@@ -4,140 +4,48 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.alibaba.fastjson.JSONObject;
-import com.web.flux.dao.ClientAuthonDao;
-import com.web.flux.dao.ClientDao;
-import com.web.flux.entity.ClientAuthoritiesEntity;
-import com.web.flux.entity.ClientServerEntity;
+import com.web.flux.dao.MenuDao;
+import com.web.flux.entity.MenuEntity;
 
+import com.web.flux.service.MenuService;
+import com.web.flux.vo.MenuVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.GroupedFlux;
 import reactor.core.publisher.Mono;
 
-@Controller
+@RestController
 @RequestMapping("/asyn")
 public class AsynController {
 
     @Autowired
-    private ClientDao clientDao;
-    @Autowired
-    private ClientAuthonDao clientAuthonDao;
+    private MenuService menuService;
 
-    @GetMapping("/test")
-    @ResponseBody
-    public Mono<JSONObject> test(@RequestParam("infor") String infor) {
-        Mono<String> monoStr = Mono.just(infor);
-        Mono<JSONObject> monoJson = monoStr.flatMap(str -> {
-            return strToJSON(str);
-        });
-        return monoJson;
+    @GetMapping(value = "/selectMenu",produces = "application/stream+json")
+    public Flux<MenuVo> selectMeun(@RequestParam(name = "menuId", required = false) final Long menuId,
+                                   @RequestParam(name = "menuName", required = false) final String menuName,
+                                   @RequestParam(name = "menuType", required = false) final String menuType,
+                                   @RequestParam(name = "parentId", required = false) final Long parentId,
+                                   @RequestParam(name = "roleId", required = false) final String roleId,
+                                   @RequestParam(name = "status", required = false) final Integer status,
+                                   @RequestParam(name = "needChild", required = false, defaultValue = "1") final Integer needChild){
+
+
+        return menuService.selectMenu(menuId, menuName, menuType, parentId, roleId, status, needChild);
     }
 
-    // "application/stream+json"
-    // "text/event-stream"
-    @GetMapping(value = "/testFlux", produces = "text/event-stream")
-    @ResponseBody
-    public Flux<JSONObject> testFlux(@RequestParam("infor") String infor) {
-        System.out.println(infor);
-        ArrayList<String> list = new ArrayList<String>();
-        list.add(1 + "::" + infor);
-        list.add(5 + "::" + infor);
-        list.add(6 + "::" + infor);
-        list.add(7 + "::" + infor);
-        list.add(8 + "::" + infor);
-        Flux<String> monoStr = Flux.fromIterable(list);
-        Flux<JSONObject> monoJson = monoStr.flatMap(str -> {
-            return strToJSON(str);
-        });
-        return monoJson;
+    @GetMapping(value = "/findAll",produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Flux<MenuVo> findAll(){
+        return menuService.findAll();
     }
 
-    @PostMapping(value = "/findServers", produces = "text/event-stream")
-    @ResponseBody
-    public Flux<ClientServerEntity> findServers(@RequestParam(value = "clientId")String clientId){
-        Flux<ClientServerEntity> rFlux = clientDao.findAll();
-        return rFlux;
-    }
 
-    @GetMapping(value = "/findAll", produces = "text/event-stream")
-    @ResponseBody
-    @TransactionalEventListener
-    public Flux<ClientServerEntity> findAll() {
-        List<ClientServerEntity> list = new ArrayList<ClientServerEntity>();
-        List<ClientAuthoritiesEntity> list2 = new ArrayList<ClientAuthoritiesEntity>();
-        ClientServerEntity clientServerEntity = new ClientServerEntity();
-        clientServerEntity.setClientId("1");
-        clientServerEntity.setClientServerId(1);
-        list.add(clientServerEntity);
-        ClientServerEntity clientServerEntity2 = new ClientServerEntity();
-        clientServerEntity2.setClientId("2");
-        clientServerEntity2.setClientServerId(2);
-        list.add(clientServerEntity2);
-        ClientServerEntity clientServerEntity4 = new ClientServerEntity();
-        clientServerEntity4.setClientId("2");
-        clientServerEntity4.setClientServerId(2);
-        list.add(clientServerEntity4);
-        ClientServerEntity clientServerEntity3 = new ClientServerEntity();
-        clientServerEntity3.setClientId("3");
-        clientServerEntity3.setClientServerId(3);
-        list.add(clientServerEntity3);
 
-        ClientAuthoritiesEntity clientAuthoritiesEntity = new ClientAuthoritiesEntity();
-        clientAuthoritiesEntity.setClientServerId(1L);
-        clientAuthoritiesEntity.setAuthorities("amdin");
-        list2.add(clientAuthoritiesEntity);
-        ClientAuthoritiesEntity clientAuthoritiesEntity2 = new ClientAuthoritiesEntity();
-        clientAuthoritiesEntity2.setClientServerId(1L);
-        clientAuthoritiesEntity2.setAuthorities("root");
-        list2.add(clientAuthoritiesEntity2);
-        ClientAuthoritiesEntity clientAuthoritiesEntity3 = new ClientAuthoritiesEntity();
-        clientAuthoritiesEntity3.setClientServerId(2L);
-        clientAuthoritiesEntity3.setAuthorities("anyone");
-        list2.add(clientAuthoritiesEntity3);
 
-        Flux<ClientServerEntity> cFlux = Flux.fromIterable(list);
-        Flux<ClientAuthoritiesEntity> flux = Flux.fromIterable(list2);
-
-        // 分组
-        Flux<GroupedFlux<Long, ClientAuthoritiesEntity>> fluxBy = flux.groupBy(aut -> aut.getClientServerId());
-        // 合并每个key的数据
-        fluxBy.subscribe(mapper -> {
-            // 获取GroupedFlux分组后的数据 List<T>形式
-            mapper.collectList().subscribe(map -> {
-                List<String> rolesList = new ArrayList<String>();
-                for (ClientAuthoritiesEntity c : map) {
-                    rolesList.add(c.getAuthorities());
-                }
-
-                cFlux.subscribe(e -> {
-                    if (e.getClientServerId().equals(mapper.key().intValue())) {
-                        e.setRoles(rolesList);
-                    }
-                });
-            });
-        });
-        return cFlux;
-    }
-
-    private Mono<JSONObject> strToJSON(String str) {
-        System.out.println(str);
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("infor", str);
-        jsonObject.put("type", "one");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return Mono.just(jsonObject);
-    }
 
 }
