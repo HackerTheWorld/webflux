@@ -3,24 +3,26 @@
 
 <head>
     <meta charset="utf-8">
-    <title>W3Cschool教程(w3cschool.cn)</title>
 </head>
 
 <body>
     <h1>获取服务端更新数据</h1>
     <div id="result"></div>
 
-    <script>
-        function start() {
-            var source = new EventSource("http://127.0.0.1:20030/asyn/testFlux?infor=ppss");
-            source.onmessage = function (event) {
-                console.log(event)
-                //document.getElementById("result").innerHTML += event.data + "<br>";
-            }
-        }
-        window.onload = start;
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+    var settings = {
+      "url": "http://127.0.0.1:20030/asyn/selectMenu?status=1&roleId=29",
+      "method": "GET",
+      "timeout": 0,
+    };
 
-    </script>
+    $.ajax(settings).done(function (response) {
+      console.log(response);
+    });
+});
+</script>
 
 </body>
 

@@ -4,15 +4,6 @@ server:
 spring:
   profiles:
     active: dev
-
-  r2dbc:
-    url: r2dbc:mysql://192.168.209.128:3306/jurisdiction?serverTimezone=GMT&characterEncoding=UTF-8
-    username: root
-    password: wh3164335
-    name: r2dbc
-    pool:
-      validation-query: SELECT 1
-      enabled: true
       
   application:
     name: webflux
