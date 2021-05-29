@@ -2,6 +2,7 @@ package com.web.flux.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.web.flux.entity.MenuEntity;
 import com.web.flux.service.MenuService;
 import com.web.flux.vo.MenuVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,17 +35,16 @@ public class AsynController {
     }
 
     @GetMapping(value = "/findAll")
-    public Mono<JSONObject> findAll() throws InterruptedException {
+    public  Mono<JSONObject> findAll() throws InterruptedException {
 
-        Mono<List<MenuVo>> menuVoFlux = menuService.findAll().collectList();
-
-        Mono<JSONObject> jsonObjectMono = menuVoFlux.map(s -> {
+        Mono<List<MenuEntity>> menuVoFlux = menuService.findAll().collectList();
+        Mono<JSONObject> jsonObjectMono = menuVoFlux.flatMap(s -> {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("sucess",true);
             jsonObject.put("mess","sucess");
             jsonObject.put("data",s);
             System.out.println("listener map::"+jsonObject);
-            return jsonObject;
+            return Mono.just(jsonObject);
         });
        return jsonObjectMono;
     }

@@ -43,14 +43,14 @@ public class MenuServiceImpl implements MenuService {
     private DatabaseClient client;
 
     @Override
-    public Flux<MenuVo> findAll() {
-        Flux<MenuEntity> me = menuDao.findAll();
-        return me.map(mapEle -> {
-            MenuVo menuVo = new MenuVo();
-            BeanCopier beanCopier = BeanCopier.create(MenuEntity.class,MenuVo.class,false);
-            beanCopier.copy(mapEle,menuVo,null);
-            return menuVo;
-        });
+    public Flux<MenuEntity> findAll() {
+        return menuDao.findAll();
+//        return me.map(mapEle -> {
+//            MenuVo menuVo = new MenuVo();
+//            BeanCopier beanCopier = BeanCopier.create(MenuEntity.class,MenuVo.class,false);
+//            beanCopier.copy(mapEle,menuVo,null);
+//            return menuVo;
+//        });
     }
 
     @Override
