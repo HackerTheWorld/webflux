@@ -1,35 +1,14 @@
-/* ====================================================================================================
- * Project Name     [flux]
- * File Name        [com.web.flux.StreamMain.java]
- * Creation Date    [2021-05-29]
- *
- * Copyright© 2021 瑞声科技[AAC Technologies Holdings] All Rights Reserved
- *
- * ====================================================================================================
- * Change Log
- * ====================================================================================================
- * 2021-05-29     潘凌云      [Init] .
- * ==================================================================================================== */
 package com.web.flux;
 
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * <p></p>
- *
- * @author <a href="mailto:panlingyun@aactechnologies.com">潘凌云</a>
- * @version 1.0.0
- * @since jdk 1.8
- */
+
 public class StreamMain {
 
     public static void main(String[] args) {
@@ -88,11 +67,14 @@ public class StreamMain {
 
         Stream<Tuple2<String,Integer>> tuple2Stream = Stream.of(Tuples.of("a",1), Tuples.of("b",2),
                 Tuples.of("c",3), Tuples.of("a",2),
-                Tuples.of("b",4),Tuples.of("b",4));
-        Map<Object, Optional<Tuple2<String,Integer>>> in
-                = tuple2Stream.collect(Collectors.groupingBy(v1 -> v1.getT1(), Collectors.reducing(bin))
-        );
-        System.out.println(in);
+                Tuples.of("b",4),Tuples.of("b",4)).sorted();
+//        Map<String, List<Tuple2<String,Integer>>> in
+//                = tuple2Stream.collect(Collectors.groupingBy(v1 -> v1.getT1(),(o1) -> {
+//            HashMap<String,Integer> map = new HashMap<>();
+//            return map;
+//                })
+//        );
+//        System.out.println(in);
     }
 
     private static boolean isFilter(Tuple2<String,Integer> tuple2){

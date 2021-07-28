@@ -1,15 +1,3 @@
-/* ====================================================================================================
- * Project Name     [flux]
- * File Name        [com.web.flux.service.impl.MenuServiceImpl.java]
- * Creation Date    [2021-05-22]
- *
- * Copyright© 2021 瑞声科技[AAC Technologies Holdings] All Rights Reserved
- *
- * ====================================================================================================
- * Change Log
- * ====================================================================================================
- * 2021-05-22     潘凌云      [Init] .
- * ==================================================================================================== */
 package com.web.flux.service.impl;
 
 import com.web.flux.dao.MenuDao;
@@ -27,13 +15,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.GroupedFlux;
 import java.util.Map;
 
-/**
- * <p></p>
- *
- * @author <a href="mailto:panlingyun@aactechnologies.com">潘凌云</a>
- * @version 1.0.0
- * @since jdk 1.8
- */
+
 @Service
 public class MenuServiceImpl implements MenuService {
 
