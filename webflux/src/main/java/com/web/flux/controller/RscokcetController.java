@@ -1,5 +1,6 @@
 package com.web.flux.controller;
 
+import com.web.flux.vo.MessageVo;
 import io.rsocket.transport.ClientTransport;
 import org.springframework.messaging.rsocket.RSocketConnectorConfigurer;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -18,67 +19,61 @@ import java.time.Duration;
 @RequestMapping("/rsocket")
 public class RscokcetController {
 
-    private final RSocketRequester rsocketRequester;
+    private final Mono<RSocketRequester> rsocketRequester;
     private static Disposable disposable;
 
     public RscokcetController(RSocketRequester.Builder rsocketRequesterBuilder, RSocketStrategies strategies) {
-        ClientTransport clientTransport = null;
-        RSocketConnectorConfigurer rSocketConnectorConfigurer = null;
         this.rsocketRequester = rsocketRequesterBuilder
                 .rsocketStrategies(strategies)
                 .connectTcp("127.0.0.1",7000)
-                .block();
-        this.rsocketRequester.rsocket()
-                .onClose()
                 .doOnError(error -> System.out.println("发生错误，链接关闭"))
-                .doFinally(consumer -> System.out.println("链接关闭"))
-                .subscribe();
+                .doFinally(consumer -> System.out.println("链接关闭"));
     }
 
     @PreDestroy
     void shutdown() {
-        rsocketRequester.rsocket().dispose();
+        rsocketRequester.subscribe(e -> e.rsocket().dispose());
     }
 
     @GetMapping("requestResponse")
     public Mono<String> requestResponse() {
-        return this.rsocketRequester
-                .route("requestResponse")
+        return this.rsocketRequester.flatMap(mapper ->
+                mapper.route("requestResponse")
                 .data("客户端 服务器")
-                .retrieveMono(String.class);
+                .retrieveMono(String.class));
     }
 
     @GetMapping("fireAndForget")
     public String fireAndForget() {
-        this.rsocketRequester
-                .route("fireAndForget")
-                .data("客户端 服务器")
-                .send();
+        this.rsocketRequester.subscribe(e ->
+                e.route("fireAndForget")
+                        .data("客户端 服务器")
+                        .send());
         return "fire and forget";
     }
 
     @GetMapping("stream")
     public String stream() {
-        disposable = this.rsocketRequester
-                .route("stream")
-                .data("stream 客户端")
-                .retrieveFlux(String.class)
-                .subscribe(message -> System.out.println("客户端stream收到响应 "+message));
+        disposable = this.rsocketRequester.subscribe(e ->
+                        e.route("stream")
+                                .data("stream 客户端")
+                                .retrieveFlux(String.class)
+                                .subscribe(message -> System.out.println("客户端stream收到响应 "+message)));
         return "stream";
     }
 
     @GetMapping("channel")
     public String channel() {
-        Mono<Duration> setting1 = Mono.just(Duration.ofSeconds(1));
-        Mono<Duration> setting2 = Mono.just(Duration.ofSeconds(3)).delayElement(Duration.ofSeconds(5));
-        Mono<Duration> setting3 = Mono.just(Duration.ofSeconds(5)).delayElement(Duration.ofSeconds(15));
-        Flux<Duration> settings = Flux.concat(setting1, setting2, setting3)
-                .doOnNext(d -> System.out.println("客户端channel发送消息 {}"+d.getSeconds()));
-        disposable = this.rsocketRequester
-                .route("channel")
-                .data(settings)
-                .retrieveFlux(String.class)
-                .subscribe(message -> System.out.println("客户端channel收到响应 {}"+message));
+        Mono<Duration> setting1 = Mono.create(e -> new Thread(new SettingOneRunnable(e,new MessageVo("webFlux","rsocket","A send Message"),1000L)).start());
+        Mono<Duration> setting2 = Mono.create(e -> new Thread(new SettingOneRunnable(e,new MessageVo("webFlux","rsocket","B send Message"),1300L)).start());
+        Mono<Duration> setting3 = Mono.create(e -> new Thread(new SettingOneRunnable(e,new MessageVo("webFlux","rsocket","C send Message"),1600L)).start());
+        Flux<Duration> settings = Flux.concat(setting1, setting2, setting3);
+        disposable = this.rsocketRequester.subscribe(e ->
+                e.route("channel")
+                        .data(settings)
+                        .retrieveFlux(MessageVo.class)
+                        .subscribe(message -> System.out.println("客户端channel收到响应 from::"+message.getFrom()+" to::"+message.getTo()+"=="+message.getMessage()))
+        );
         return "channel";
     }
 

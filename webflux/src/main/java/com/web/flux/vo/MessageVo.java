@@ -28,6 +28,15 @@ public class MessageVo implements Serializable {
     private String to;
     private String message;
 
+    public MessageVo() {
+    }
+
+    public MessageVo(final String from, final String to, final String message) {
+        this.from = from;
+        this.to = to;
+        this.message = message;
+    }
+
     public String getFrom() {
         return this.from;
     }
